@@ -36,9 +36,8 @@ public class TLSManager {
             return .Error(.extractCFTypeRefError)
         }
 
-        let clientIdentity = cfIdentity as! SecIdentity
-        
-        guard let secIdentity: sec_identity_t = sec_identity_create(clientIdentity) else {
+        guard let clientIdentity: SecIdentity = CertManager().getSecIdentity(),
+              let secIdentity: sec_identity_t = sec_identity_create(clientIdentity) else {
             return .Error(.secIdentityCreateError)
         }
         

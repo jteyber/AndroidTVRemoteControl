@@ -7,13 +7,13 @@
 
 import Foundation
 
-public class CertManager {
-    public init() {}
+class CertManager : NSObject {
     
-    public func cert(_ url: URL, _ password: String) -> Result<CFArray?> {
+    func cert(_ url: URL, _ password: String) -> Result<CFArray?> {
         let p12Data: Data
         do {
             p12Data = try Data(contentsOf: url)
+            
         } catch let error {
             return .Error(.loadCertFromURLError(error))
         }
@@ -26,10 +26,66 @@ public class CertManager {
             return .Error(.secPKCS12ImportNotSuccess)
         }
         
+        let clientIdentity = CertManager().getSecIdentity()
+        
+        if clientIdentity == nil {
+            
+            let dictionaryItems = rawItems as? Array<Dictionary<String, Any>>
+            
+            let secIdentity: SecIdentity = dictionaryItems![0][kSecImportItemIdentity as String] as! SecIdentity
+            
+            //        // Notice that kSecClass as String: kSecClassIdentity isn't used here as this is inferred from kSecValueRef.
+            let identityAddition = [
+                kSecValueRef: secIdentity,
+                kSecAttrLabel: "ListenerIdentityLabel"
+            ] as NSDictionary
+            
+            
+            let identityStatus = SecItemAdd(identityAddition as CFDictionary, nil)
+            
+            guard identityStatus == errSecSuccess else {
+                return .Error(.secIdentityCreateError)
+            }
+        }
+        
         return .Result(rawItems)
     }
     
-    public func getSecKey(_ url: URL) -> Result<SecKey> {
+    func getSecIdentity() -> SecIdentity? {
+        // On the query, use kSecClassIdentity to make sure a SecIdentity is extracted.
+        let identityQuery = [
+            kSecClass: kSecClassIdentity,
+            kSecReturnRef: true,
+            kSecAttrLabel: "ListenerIdentityLabel"
+        ] as NSDictionary
+        var identityItem: CFTypeRef?
+        let getIdentityStatus = SecItemCopyMatching(identityQuery as CFDictionary, &identityItem)
+
+        guard getIdentityStatus == errSecSuccess else {
+            return nil
+        }
+        
+        let secIdentity = identityItem as! SecIdentity
+        return secIdentity
+    }
+    
+    func deleteSecIdentity() {
+        // On the query, use kSecClassIdentity to make sure a SecIdentity is extracted.
+        let identityQuery = [
+            kSecClass: kSecClassIdentity,
+            kSecReturnRef: true,
+            kSecAttrLabel: "ListenerIdentityLabel"
+        ] as NSDictionary
+        
+        let status = SecItemDelete(identityQuery as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound
+        else {
+            return
+        }
+    }
+    
+    func getSecKey(_ url: URL) -> Result<SecKey> {
+        
         guard let certificateData = NSData(contentsOf:url),
               let certificate = SecCertificateCreateWithData(nil, certificateData) else {
             return .Error(.createCertFromDataError)
@@ -47,16 +103,15 @@ public class CertManager {
             return (.Error(.createTrustObjectError))
         }
         
-        if #available(iOS 14.0, *) {
+        if #available(iOS 14.0, macOS 11.0, *) {
             guard let key = SecTrustCopyKey(secTrust) else {
                 return .Error(.secTrustCopyKeyError)
             }
+            
             return .Result(key)
         } else {
-            guard let key = SecTrustCopyPublicKey(secTrust) else {
-                return .Error(.secTrustCopyKeyError)
-            }
-            return .Result(key)
+            return .Error(.deprecatedFunctions)
         }
     }
+    
 }

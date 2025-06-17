@@ -44,6 +44,8 @@ public enum AndroidTVRemoteControlError {
     case secPKCS12ImportNotSuccess
     case createTrustObjectError
     case secTrustCreateWithCertificatesNotSuccess(OSStatus)
+    
+    case deprecatedFunctions
 }
 
 extension AndroidTVRemoteControlError: Error {
@@ -107,6 +109,8 @@ extension AndroidTVRemoteControlError: Error {
             return "Certificate Error: create secTrust error"
         case .secTrustCreateWithCertificatesNotSuccess(let status):
             return "Certificate Error: secTrust create with certificate is not success, status: \(status)"
+        case .deprecatedFunctions:
+            return "error : using deprecated method"
         }
     }
 }
