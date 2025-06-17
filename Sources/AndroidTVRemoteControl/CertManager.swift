@@ -7,9 +7,9 @@
 
 import Foundation
 
-class CertManager : NSObject {
+public class CertManager : NSObject {
     
-    func cert(_ url: URL, _ password: String) -> Result<CFArray?> {
+    public func cert(_ url: URL, _ password: String) -> Result<CFArray?> {
         let p12Data: Data
         do {
             p12Data = try Data(contentsOf: url)
@@ -51,7 +51,7 @@ class CertManager : NSObject {
         return .Result(rawItems)
     }
     
-    func getSecIdentity() -> SecIdentity? {
+    public func getSecIdentity() -> SecIdentity? {
         // On the query, use kSecClassIdentity to make sure a SecIdentity is extracted.
         let identityQuery = [
             kSecClass: kSecClassIdentity,
@@ -69,7 +69,7 @@ class CertManager : NSObject {
         return secIdentity
     }
     
-    func deleteSecIdentity() {
+    public func deleteSecIdentity() {
         // On the query, use kSecClassIdentity to make sure a SecIdentity is extracted.
         let identityQuery = [
             kSecClass: kSecClassIdentity,
@@ -84,7 +84,7 @@ class CertManager : NSObject {
         }
     }
     
-    func getSecKey(_ url: URL) -> Result<SecKey> {
+    public func getSecKey(_ url: URL) -> Result<SecKey> {
         
         guard let certificateData = NSData(contentsOf:url),
               let certificate = SecCertificateCreateWithData(nil, certificateData) else {
