@@ -251,10 +251,10 @@ public class PairingManager {
                 let secretResponse = PairingNetwork.SecretResponse(data: data, code: code)
                 if secretResponse.isSuccess {
                     self.pairingState = .successPaired
+                } else {
+                    self.pairingState = .error(.secretNotSuccess(data))
+                    self.disconnect()
                 }
-                
-                self.pairingState = secretResponse.isSuccess ? .successPaired : .error(.secretNotSuccess(data))
-                self.disconnect()
             default:
                 return
             }
