@@ -245,8 +245,6 @@ public class PairingManager {
                 }
                 
                 self.pairingState = .confirmationResponseSuccess
-                return
-            case .confirmationResponseSuccess:
                 self.pairingState = .waitingCode
             case .secretSent:
                 let secretResponse = PairingNetwork.SecretResponse(data: data, code: code)
