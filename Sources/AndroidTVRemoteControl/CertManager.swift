@@ -18,6 +18,11 @@ public class CertManager : NSObject {
             return .Error(.loadCertFromURLError(error))
         }
         
+        return self.cert(p12Data, password)
+    }
+    
+    public func cert(_ p12Data: Data, _ password: String) -> Result<CFArray?> {
+        
         let importOptions = [kSecImportExportPassphrase as String: password]
         var rawItems: CFArray?
         let status = SecPKCS12Import(p12Data as CFData, importOptions as CFDictionary, &rawItems)
