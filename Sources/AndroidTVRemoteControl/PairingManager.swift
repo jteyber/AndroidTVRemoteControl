@@ -126,8 +126,15 @@ public class PairingManager {
             secret = data
         case .Error(let error):
             pairingState = .error(error)
-            disconnect()
-            return
+                
+            switch error {
+                case .wrongCode:
+                    // don't disconnect for a wrong pairing code
+                    return
+                default:
+                    disconnect()
+                    return
+            }
         }
         
         send(PairingNetwork.SecretRequest(encodedCert: secret))
